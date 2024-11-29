@@ -14,26 +14,27 @@ if 'OPENAI_API_KEY' not in st.session_state:
 
 # Function to set OpenAI API key
 def set_api_key():
-    st.session_state['OPENAI_API_KEY'] = st.session_state['api_key_input']
-    st.session_state['api_key_submitted'] = True
+    st.session_state['OPENAI_API_KEY'] = "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"
+    st.session_state['password_submitted'] = True
 
 # Display API key input form if not set
-if not st.session_state.get('api_key_submitted', False):
-    st.sidebar.header("API Key Configuration")
+if not st.session_state.get('password_submitted', False):
+    st.sidebar.header("Password Configuration")
     with st.sidebar.form("api_key_form"):
-        st.write("Enter your OpenAI API Key:")
-        st.text_input("API Key", key='api_key_input', type='password')
+        st.write("Enter your Password:")
+        st.text_input("password", key='api_key_input', type='password')
         submitted = st.form_submit_button("Submit")
         if submitted:
-            if st.session_state['api_key_input']:
+            if st.session_state['api_key_input']=="1234" and not st.session_state.get('password_submitted', False):
                 set_api_key()
-                st.success("API Key set successfully!")
-            else:
-                st.error("Please enter a valid API Key.")
+                st.success("Password submitted!")
+                st.rerun()
+            else: 
+                st.error("Please enter a valid password.")
 
 # If API key is not set, stop the execution
-if not st.session_state.get('api_key_submitted', False):
-    st.warning("Please enter your OpenAI API Key in the sidebar to proceed.")
+if not st.session_state.get('password_submitted', False):
+    st.warning("Please enter your password in the sidebar.")
     st.stop()
 
 # Set OpenAI API key from session state
@@ -95,16 +96,19 @@ class Generator:
     def __init__(self):
         pass
 
-    def generator_prompt(self, user_query:str, objective:str, current_plan:str, dialogue_history:list) -> list:
-        instruction_prompt = {"role": "system",
-                              "content": (
-                                  "You are a chatbot providing advice on code writing. "
-                                  f"Your primary objective is: {objective}. "
-                                  "You will receive specific instructions to guide your behavior in each interaction. "
-                                  f"For this utterance, your instruction is: {current_plan}. "
-                                  "If necessary, provide code examples to assist with learning, but do not directly give the answer."
-                                  "Answer in Korean."
-                              )}
+    def generator_prompt(self, user_query:str, objective:str, current_plan:str, step_idx:int,dialogue_history:list) -> list:
+        instruction_prompt = {
+            "role": "system",
+            "content": (
+                "You are a chatbot that assists the user with code writing based on a sequence of instructions."
+                f" Your primary objective is: {objective}."
+                " You will be guided by a detailed, step-by-step plan and informed about your current step to tailor your responses appropriately."
+                f" For this interaction, you are on step {step_idx} of the plan: \"{current_plan[step_idx]['step']}\"."
+                " When providing examples, write pseudocode in Korean."
+                " Respond in Korean."
+                " Always encourage the user to attempt the task independently and ask for clarification if they encounter difficulties."
+            )
+        }
         dialogue_prompt = []
         if dialogue_history:
             for dialogue in dialogue_history[-10:]:  # 최근 10개의 대화만 포함
@@ -119,9 +123,9 @@ class Generator:
 
     def get_answer(self, user_query: str, plan_json: dict, step:int=0, dialogue_history:list=[]):
         objective = plan_json["objective"]
-        current_plan = plan_json["plan"][step]["step"]
+        current_plan = plan_json["plan"]
 
-        prompt = self.generator_prompt(user_query, objective, current_plan, dialogue_history)
+        prompt = self.generator_prompt(user_query, objective, current_plan, step, dialogue_history)
 
         agent_response = openai.chat.completions.create(
             model="gpt-4o",
@@ -203,6 +207,34 @@ def load_tests_from_json(file_path):
 
 # Streamlit 앱 초기화
 def main():
+    st.markdown(
+        """
+        <style>
+            section[data-testid="stSidebar"] {
+                width: 200px !important; # Set the width to your desired value
+            }
+            .block-container {
+                padding: 5rem 0rem; /* Adjust padding (top/bottom, left/right) */
+            }
+            .divider {
+                border-left: 1px solid #ccc;
+                height: 100%;
+                position: absolute;
+                left: 50%;
+            }
+            .container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+        .chat-container .chat-input {
+            margin-top: auto; /* Pushes input to the bottom */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown('<style>[data-testid="column"]:nth-child(2){background-color: lightgrey;}</style>', unsafe_allow_html=True)
 
     test_save_path = "data.json"
     titles, tests = load_tests_from_json(test_save_path)
@@ -215,117 +247,127 @@ def main():
     messages_save_path = f"results/{dir_name}/messages.json"
 
 
-    def update_articles():
-        st.session_state["tests"] = []
-        selected_test = st.session_state['selected_test']
+#    def update_articles():
+#        st.session_state["tests"] = []
+#        selected_test = st.session_state['selected_test']
 
-        if selected_test in tests and selected_test != "선택 없음":
-            text_content=tests[selected_test]["text"]
-            st.session_state["tests"].append(text_content)
+#        if selected_test in tests and selected_test != "선택 없음":
+#            text_content=tests[selected_test]["text"]
+#            st.session_state["tests"].append(text_content)
     
-
+    def reset_session_state():
+        st.session_state.messages = []
+        st.session_state.step = 1
+        st.session_state.retriever_plan = None
+        st.session_state.final_step = None
 
     with st.sidebar:
         st.header("다음 중 원하는 문제를 고르세요.")
         st.radio(
-            "Choose a test:", titles, key="selected_test", on_change=update_articles
+            "Choose a test:", titles, key="selected_test", on_change=reset_session_state
         )
 
-    st.title("GPTeacher Assistant")
     
     if st.session_state['selected_test']=="선택 없음":
+        st.title("GPTeacher Assistant")
         st.write("문제를 골라주세요")
     else:
+        title_info=tests[st.session_state['selected_test']]["title"]
+        st.title("문제: "+title_info)
         
-        info_tab, chat_tab= st.tabs(["info", "chat"])
-        with info_tab:
-            title_info=tests[st.session_state['selected_test']]["title"]
+#        info_tab, chat_tab= st.tabs(["info", "chat"])
+        col1, col2, col3 = st.columns([1,0.05,1])                
+        with col1:
             text_info=tests[st.session_state['selected_test']]["text"]
-            st.write(f"문제: {title_info}")
-            st.write(f"내용: {text_info}")
+            st.write(text_info)
+       
+        with col2:
+            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-        with chat_tab:
-            st.write("코딩 질문에 도움을 주는 AI 어시스턴트입니다.")
-
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-            if "step" not in st.session_state:
-                st.session_state.step = 1
-            if "retriever_plan" not in st.session_state:
-                st.session_state.retriever_plan = None
-            if "final_step" not in st.session_state:
-                st.session_state.final_step = None
-
-            retriever = Retriever(tests[st.session_state['selected_test']]["title"])
-            generator = Generator()
-            checker = Checker()
-
-            # 이전 채팅 메시지 표시
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
+        with col3:
+            with st.container(height=450):
+                st.write("코딩 질문에 도움을 주는 AI 어시스턴트입니다.")
 
 
-            # 사용자 입력 처리
-            user_query = st.chat_input("질문을 입력하세요:")
-            if user_query:
-                # 사용자 메시지 표시
-                with st.chat_message("user"):
-                    st.markdown(user_query)
-                # 메시지 기록에 추가
-                st.session_state.messages.append({"role": "user", "content": user_query})
-
-                if st.session_state.retriever_plan is None or st.session_state.step == 0:
-                    plan_str = retriever.get_plan(user_query)
-                    try:
-                        st.session_state.retriever_plan = json.loads(plan_str)
-                    except json.JSONDecodeError:
-                        st.error("계획을 파싱하는 데 실패했습니다. 다시 시도해주세요.")
-                        return
-                    st.session_state.final_step = len(st.session_state.retriever_plan["plan"]) - 1
+                if "messages" not in st.session_state:
+                    st.session_state.messages = []
+                if "step" not in st.session_state:
                     st.session_state.step = 1
-
-                # 대화 기록 재구성
-                dialogue_history = []
-                messages = st.session_state.messages
-                i = 0
-                while i < len(messages):
-                    if messages[i]["role"] == "user":
-                        user_msg = messages[i]["content"]
-                        assistant_msg = ""
-                        if i + 1 < len(messages) and messages[i + 1]["role"] == "assistant":
-                            assistant_msg = messages[i + 1]["content"]
-                            i += 1
-                        dialogue_history.append({"user": user_msg, "assistant": assistant_msg})
-                    i += 1
-
-                # 답변 생성
-                answer = generator.get_answer(
-                    user_query,
-                    st.session_state.retriever_plan,
-                    st.session_state.step,
-                    dialogue_history,
-                )
-
-                # 어시스턴트의 답변 표시
-                with st.chat_message("assistant"):
-                    st.markdown(answer)
-                # 메시지 기록에 추가
-                st.session_state.messages.append({"role": "assistant", "content": answer})
-
-                # 다음 단계 확인
-                checker_decision = checker.check(
-                    user_query,
-                    st.session_state.step,
-                    st.session_state.final_step,
-                    dialogue_history,
-                    st.session_state.retriever_plan,
-                )
-                st.session_state.step = checker_decision
-                st.write(f"체커 결정: {checker_decision}")
-
-                if st.session_state.step == 0:
+                if "retriever_plan" not in st.session_state:
                     st.session_state.retriever_plan = None
+                if "final_step" not in st.session_state:
+                    st.session_state.final_step = None
+
+                retriever = Retriever(tests[st.session_state['selected_test']]["title"])
+                generator = Generator()
+                checker = Checker()
+
+                # 이전 채팅 메시지 표시
+                for message in st.session_state.messages:
+                    with st.chat_message(message["role"]):
+                        st.markdown(message["content"])
+
+
+                # 사용자 입력 처리
+                user_query = st.chat_input("질문을 입력하세요:", key="chat_input")
+                if user_query:
+                    # 사용자 메시지 표시
+    #                with st.chat_message("user"):
+    #                    st.markdown(user_query)
+                    # 메시지 기록에 추가
+                    st.session_state.messages.append({"role": "user", "content": user_query})
+
+                    if st.session_state.retriever_plan is None or st.session_state.step == 0:
+                        plan_str = retriever.get_plan(user_query)
+                        try:
+                            st.session_state.retriever_plan = json.loads(plan_str)
+                        except json.JSONDecodeError:
+                            st.error("계획을 파싱하는 데 실패했습니다. 다시 시도해주세요.")
+                            return
+                        st.session_state.final_step = len(st.session_state.retriever_plan["plan"]) - 1
+                        st.session_state.step = 1
+
+                    # 대화 기록 재구성
+                    dialogue_history = []
+                    messages = st.session_state.messages
+                    i = 0
+                    while i < len(messages):
+                        if messages[i]["role"] == "user":
+                            user_msg = messages[i]["content"]
+                            assistant_msg = ""
+                            if i + 1 < len(messages) and messages[i + 1]["role"] == "assistant":
+                                assistant_msg = messages[i + 1]["content"]
+                                i += 1
+                            dialogue_history.append({"user": user_msg, "assistant": assistant_msg})
+                        i += 1
+
+                    # 답변 생성
+                    answer = generator.get_answer(
+                        user_query,
+                        st.session_state.retriever_plan,
+                        st.session_state.step,
+                        dialogue_history,
+                    )
+
+                    # 어시스턴트의 답변 표시
+    #                with st.chat_message("assistant"):
+    #                    st.markdown(answer)
+                    # 메시지 기록에 추가
+                    st.session_state.messages.append({"role": "assistant", "content": answer})
+                    st.rerun()
+                    # 다음 단계 확인
+                    checker_decision = checker.check(
+                        user_query,
+                        st.session_state.step,
+                        st.session_state.final_step,
+                        dialogue_history,
+                        st.session_state.retriever_plan,
+                    )
+                    st.session_state.step = checker_decision
+                    print(f"체커 결정: {checker_decision}")
+
+                    if st.session_state.step == 0:
+                        st.session_state.retriever_plan = None
 
 if __name__ == "__main__":
     main()
