@@ -4,10 +4,40 @@ import streamlit as st
 import os
 import openai
 import json
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # OpenAI API 키 설정
-load_dotenv()
+#load_dotenv()
+# Initialize Streamlit session state for API key
+if 'OPENAI_API_KEY' not in st.session_state:
+    st.session_state['OPENAI_API_KEY'] = ''
+
+# Function to set OpenAI API key
+def set_api_key():
+    st.session_state['OPENAI_API_KEY'] = st.session_state['api_key_input']
+    st.session_state['api_key_submitted'] = True
+
+# Display API key input form if not set
+if not st.session_state.get('api_key_submitted', False):
+    st.sidebar.header("API Key Configuration")
+    with st.sidebar.form("api_key_form"):
+        st.write("Enter your OpenAI API Key:")
+        st.text_input("API Key", key='api_key_input', type='password')
+        submitted = st.form_submit_button("Submit")
+        if submitted:
+            if st.session_state['api_key_input']:
+                set_api_key()
+                st.success("API Key set successfully!")
+            else:
+                st.error("Please enter a valid API Key.")
+
+# If API key is not set, stop the execution
+if not st.session_state.get('api_key_submitted', False):
+    st.warning("Please enter your OpenAI API Key in the sidebar to proceed.")
+    st.stop()
+
+# Set OpenAI API key from session state
+openai.api_key = st.session_state['OPENAI_API_KEY']
 
 # Retriever 클래스 정의
 class Retriever:
