@@ -10,10 +10,11 @@ from dotenv import load_dotenv
 load_dotenv()
 # Initialize Streamlit session state for API key
 if 'OPENAI_API_KEY' not in st.session_state:
-    st.session_state['OPENAI_API_KEY'] = os.getenv("api_key")
+    st.session_state['OPENAI_API_KEY'] = ''
 
 # Function to set OpenAI API key
 def set_api_key():
+    st.session_state['OPENAI_API_KEY'] = os.getenv("api_key")
     st.session_state['password_submitted'] = True
 
 # Display API key input form if not set
