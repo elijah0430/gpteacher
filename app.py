@@ -7,14 +7,13 @@ import json
 #from dotenv import load_dotenv
 
 # OpenAI API 키 설정
-#load_dotenv()
+load_dotenv()
 # Initialize Streamlit session state for API key
 if 'OPENAI_API_KEY' not in st.session_state:
-    st.session_state['OPENAI_API_KEY'] = ''
+    st.session_state['OPENAI_API_KEY'] = os.getenv("api_key")
 
 # Function to set OpenAI API key
 def set_api_key():
-    st.session_state['OPENAI_API_KEY'] = "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"
     st.session_state['password_submitted'] = True
 
 # Display API key input form if not set
@@ -25,7 +24,7 @@ if not st.session_state.get('password_submitted', False):
         st.text_input("password", key='api_key_input', type='password')
         submitted = st.form_submit_button("Submit")
         if submitted:
-            if st.session_state['api_key_input']=="1234" and not st.session_state.get('password_submitted', False):
+            if st.session_state['api_key_input']==os.getenv("password") and not st.session_state.get('password_submitted', False):
                 set_api_key()
                 st.success("Password submitted!")
                 st.rerun()
