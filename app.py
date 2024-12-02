@@ -4,7 +4,7 @@ import streamlit as st
 import os
 import openai
 import json
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 # OpenAI API 키 설정
 load_dotenv()
