@@ -14,7 +14,7 @@ if 'OPENAI_API_KEY' not in st.session_state:
 
 # Function to set OpenAI API key
 def set_api_key():
-    st.session_state['OPENAI_API_KEY'] = "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"
+    st.session_state['OPENAI_API_KEY'] = "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"
     st.session_state['password_submitted'] = True
 
 # Display API key input form if not set
