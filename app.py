@@ -237,11 +237,10 @@ def main():
         .chat-container .chat-input {
             margin-top: auto; /* Pushes input to the bottom */
         }
-        #GithubIcon {
-        visibility: hidden;
-        }
-        #MainMenu {
-        visibility: hidden;
+        .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
+        .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
+        .viewerBadge_text__1JaDK {
+            display: none;
         }
         </style>
         """,
@@ -287,7 +286,7 @@ def main():
             st.markdown("""# About GPTeacher Assistant\n
 안녕하세요, 저희는 학부생 학습과학 연구에서 `개별 학습자의 능동적 사고를 증진하는 AI 학습 프레임워크`를 주제로 `GPTeacher Assistant`를 연구 중인 김세안, 임종원, 김민지입니다!\n\n
 이 홈페이지는 저희가 구축한 챗봇과 함께 대화를 나눌 수 있는 페이지인데요, 여러분은 `GPTeacher`에게 코드 생성 관련 질문을 하고 응답을 얻을 수 있습니다!\n\n
-좌측 목차에 제시되어 있는 문제들 중 원하는 문제를 `GPTeacher`와 함께 풀어보세요! 문제를 풀어본 후, 설문 부탁과 함께 드린 구글폼을 작성해주시면 `모두에게!!!` [`떠먹는 스트로베리 초콜릿 생크림 + 스초생 프라페 (R)`, `맘스터치 후라이드 빅싸이순살`, `메가박스 일반관람권 1인`] 중 하나를 드립니다!! (이후 구글폼에서 선택)\n\n
+좌측 목차에 제시되어 있는 문제들 중 원하는 문제를 `GPTeacher`와 함께 풀어보세요! 문제를 풀어본 후, 설문 부탁과 함께 드린 구글폼을 작성해주시면 **모두에게!!!** [**떠먹는 스트로베리 초콜릿 생크림 + 스초생 프라페 (R)**, **맘스터치 후라이드 빅싸이순살**, **메가박스 일반관람권 1인**] 중 하나를 드립니다!! (이후 구글폼에서 선택)\n\n
 문제 풀이 도중 질문이 있다면 아래 메일로 부담없이 문의 주세요. 감사합니다!\n\n
 대표 학생: 김세안 (seahn1021@snu.ac.kr)""")
         with colc: 
