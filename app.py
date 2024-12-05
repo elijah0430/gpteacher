@@ -17,6 +17,7 @@ def set_api_key():
     st.session_state['OPENAI_API_KEY'] = os.getenv("api_key")
     st.session_state['password_submitted'] = True
 
+st.set_page_config(layout="wide")
 # Display API key input form if not set
 if not st.session_state.get('password_submitted', False):
     st.sidebar.header("Password Configuration")
@@ -191,8 +192,8 @@ class Checker:
 #####파일 관련
 
 def load_tests_from_json(file_path):
-    titles = ["선택 없음"]  # "선택 없음" 옵션 추가
-    tests = {"선택 없음": []}
+    titles = ["# About GPTeacher Assistant"]  # "선택 없음" 옵션 추가
+    tests = {"# About GPTeacher Assistant": []}
     with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
@@ -222,6 +223,12 @@ def main():
                 position: absolute;
                 left: 50%;
             }
+            .main-content {
+                margin: 30px; /* Adjust margin as needed */
+                padding: 20px; /* Optional: Add padding inside the content area */
+                background-color: #f9f9f9; /* Optional: Set a background color */
+                border-radius: 10px; /* Optional: Add rounded corners */
+            }
             .container {
                 display: flex;
                 align-items: center;
@@ -231,16 +238,20 @@ def main():
             margin-top: auto; /* Pushes input to the bottom */
         }
         </style>
+        #GithubIcon {
+        visibility: hidden;
+        }
+        #MainMenu {
+        visibility: hidden;
+        }
         """,
         unsafe_allow_html=True,
     )
-    st.markdown('<style>[data-testid="column"]:nth-child(2){background-color: lightgrey;}</style>', unsafe_allow_html=True)
-
     test_save_path = "data.json"
     titles, tests = load_tests_from_json(test_save_path)
 
     if 'selected_test' not in st.session_state:
-        st.session_state['selected_test'] = '선택 없음'
+        st.session_state['selected_test'] = "# About GPTeacher Assistant"
 #    if 'basic_context' not in st.session_state:
 #        st.session_state["basic_context"] = ""
     dir_name = st.session_state['selected_test']
@@ -268,23 +279,33 @@ def main():
         )
 
     
-    if st.session_state['selected_test']=="선택 없음":
-        st.title("GPTeacher Assistant")
-        st.write("문제를 골라주세요")
+    if st.session_state['selected_test']=="# About GPTeacher Assistant":
+        cola, colb, colc = st.columns([0.1, 0.8, 0.1])      
+        with cola: 
+            st.write("")          
+        with colb: 
+            st.markdown("""# About GPTeacher Assistant\n
+안녕하세요, 저희는 학부생 학습과학 연구에서 `개별 학습자의 능동적 사고를 증진하는 AI 학습 프레임워크`를 주제로 `GPTeacher Assistant`를 연구 중인 김세안, 임종원, 김민지입니다!\n\n
+이 홈페이지는 저희가 구축한 챗봇과 함께 대화를 나눌 수 있는 페이지인데요, 여러분은 `GPTeacher`에게 코드 생성 관련 질문을 하고 응답을 얻을 수 있습니다!\n\n
+좌측 목차에 제시되어 있는 문제들 중 원하는 문제를 `GPTeacher`와 함께 풀어보세요! 문제를 풀어본 후, 설문 부탁과 함께 드린 구글폼을 작성해주시면 `모두에게!!!` [`떠먹는 스트로베리 초콜릿 생크림 + 스초생 프라페 (R)`, `맘스터치 후라이드 빅싸이순살`, `메가박스 일반관람권 1인`] 중 하나를 드립니다!! (이후 구글폼에서 선택)\n\n
+문제 풀이 도중 질문이 있다면 아래 메일로 부담없이 문의 주세요. 감사합니다!\n\n
+대표 학생: 김세안 (seahn1021@snu.ac.kr)""")
+        with colc: 
+            st.write("")          
+
     else:
-        title_info=tests[st.session_state['selected_test']]["title"]
-        st.title("문제: "+title_info)
         
 #        info_tab, chat_tab= st.tabs(["info", "chat"])
-        col1, col2, col3 = st.columns([1,0.05,1])                
+        col0, col1, col_, col2, col3 = st.columns([0.03, 0.3, 0.04, 0.65, 0.03])      
+        with col0: 
+            st.write("")          
         with col1:
             text_info=tests[st.session_state['selected_test']]["text"]
-            st.write(text_info)
-       
+#            st.markdown('<div class="main-content">'+text_info+'</div>', unsafe_allow_html=True)
+            st.markdown(text_info, unsafe_allow_html=True)
+        with col_: 
+            st.write("")
         with col2:
-            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-
-        with col3:
             with st.container(height=450):
                 st.write("코딩 질문에 도움을 주는 AI 어시스턴트입니다.")
 
@@ -369,5 +390,7 @@ def main():
                     if st.session_state.step == 0:
                         st.session_state.retriever_plan = None
 
-if __name__ == "__main__":
+        with col3: 
+            st.write("")
+if __name__ == "__main__":  
     main()
