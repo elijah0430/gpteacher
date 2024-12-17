@@ -80,7 +80,7 @@ class Retriever:
                     {"role": "system", "content": "You are a helpful assistant. Make sure to return in json format."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=500,
+                max_tokens=1500,
                 temperature=0.7, 
                 response_format={"type": "json_object"},
             )
@@ -131,7 +131,7 @@ class Generator:
         agent_response = openai.chat.completions.create(
             model="gpt-4o",
             messages=prompt,
-            max_tokens=500,
+            max_tokens=1500,
             temperature=0.7,
         )
         return agent_response.choices[0].message.content
